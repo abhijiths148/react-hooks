@@ -14,12 +14,15 @@ function appReducer(state, action) {
       ];
     }
     case "update": {
-      const updateItem = state.filter((item) => item.id !== action.payload.id);
-      const updated = {
-        ...updateItem,
-        text: action.payload.text,
-      };
-      return [...state, updated];
+      return state.map((item) => {
+        if (item.id === action.payload.id) {
+          return {
+            ...item,
+            text: action.payload.text,
+          };
+        }
+        return item;
+      });
     }
     case "delete": {
       return state.filter((item) => item.id !== action.payload);
@@ -44,20 +47,28 @@ function appReducer(state, action) {
   }
 }
 
+// creating context
 const Context = React.createContext();
 
 export default function TodoApp() {
   const [state, dispatch] = useReducer(appReducer, []);
+
+  const didRun = useRef(false);
+
   useEffect(() => {
-    const rawData = localStorage.getItem("data");
-    dispatch({ type: "reset", payload: JSON.parse(rawData) });
-  }, []);
+    if (!didRun.current) {
+      const rawData = localStorage.getItem("data");
+      dispatch({ type: "reset", payload: JSON.parse(rawData) });
+      didRun.current = true;
+    }
+  });
 
   useEffect(() => {
     localStorage.setItem("data", JSON.stringify(state));
   }, [state]);
 
   return (
+    //   Providing the context in parent component
     <Context.Provider value={dispatch}>
       <h1>Todos App</h1>
       {/* Using useReducers'  */}
@@ -74,6 +85,7 @@ function TodoList({ items }) {
 }
 
 function TodoItem({ id, completed, text }) {
+  // using the context to change the state using dispatch method
   const dispatch = useContext(Context);
   return (
     <div className="todo-item">
@@ -85,9 +97,10 @@ function TodoItem({ id, completed, text }) {
       <input
         type="text"
         defaultValue={text}
-        onChange={(e) =>
-          dispatch({ type: "update", payload: { text: e.target.value, id } })
-        }
+        onChange={(e) => {
+          e.preventDefault();
+          dispatch({ type: "update", payload: { text: e.target.value, id } });
+        }}
       />
       <button onClick={() => dispatch({ type: "delete", payload: id })}>
         Delete
