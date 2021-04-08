@@ -1,4 +1,4 @@
-import React, { useReducer, useContext, useEffect } from "react";
+import React, { useReducer, useContext, useEffect, useRef } from "react";
 import "./TodoApp.css";
 
 function appReducer(state, action) {
@@ -13,17 +13,14 @@ function appReducer(state, action) {
         },
       ];
     }
-    // case "update": {
-    //     const updateItem = state.filter((item) => item.id !== action.payload);
-    //   return [
-    //     ...state,
-    //     {
-    //       id: Date.now(),
-    //       text: "",
-    //       completed: false,
-    //     },
-    //   ];
-    // }
+    case "update": {
+      const updateItem = state.filter((item) => item.id !== action.payload.id);
+      const updated = {
+        ...updateItem,
+        text: action.payload.text,
+      };
+      return [...state, updated];
+    }
     case "delete": {
       return state.filter((item) => item.id !== action.payload);
     }
@@ -88,9 +85,9 @@ function TodoItem({ id, completed, text }) {
       <input
         type="text"
         defaultValue={text}
-        // onChange={(e) =>
-        //   dispatch({ type: "update", payload: { text: e.target.value, id } })
-        // }
+        onChange={(e) =>
+          dispatch({ type: "update", payload: { text: e.target.value, id } })
+        }
       />
       <button onClick={() => dispatch({ type: "delete", payload: id })}>
         Delete
