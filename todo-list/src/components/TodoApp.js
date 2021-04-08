@@ -50,17 +50,24 @@ function appReducer(state, action) {
 // creating context
 const Context = React.createContext();
 
-export default function TodoApp() {
-  const [state, dispatch] = useReducer(appReducer, []);
-
+// custom hook
+function useEffectOnce(cbFun) {
   const didRun = useRef(false);
 
   useEffect(() => {
     if (!didRun.current) {
-      const rawData = localStorage.getItem("data");
-      dispatch({ type: "reset", payload: JSON.parse(rawData) });
+      cbFun();
       didRun.current = true;
     }
+  });
+}
+
+export default function TodoApp() {
+  const [state, dispatch] = useReducer(appReducer, []);
+
+  useEffectOnce(() => {
+    const rawData = localStorage.getItem("data");
+    dispatch({ type: "reset", payload: JSON.parse(rawData) });
   });
 
   useEffect(() => {
