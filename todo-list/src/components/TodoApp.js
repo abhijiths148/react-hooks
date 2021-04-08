@@ -13,6 +13,17 @@ function appReducer(state, action) {
         },
       ];
     }
+    // case "update": {
+    //     const updateItem = state.filter((item) => item.id !== action.payload);
+    //   return [
+    //     ...state,
+    //     {
+    //       id: Date.now(),
+    //       text: "",
+    //       completed: false,
+    //     },
+    //   ];
+    // }
     case "delete": {
       return state.filter((item) => item.id !== action.payload);
     }
@@ -27,6 +38,9 @@ function appReducer(state, action) {
         return item;
       });
     }
+    case "reset": {
+      return action.payload;
+    }
     default: {
       return state;
     }
@@ -37,10 +51,15 @@ const Context = React.createContext();
 
 export default function TodoApp() {
   const [state, dispatch] = useReducer(appReducer, []);
+  useEffect(() => {
+    const rawData = localStorage.getItem("data");
+    dispatch({ type: "reset", payload: JSON.parse(rawData) });
+  }, []);
 
-  //   useEffect(() => {
+  useEffect(() => {
+    localStorage.setItem("data", JSON.stringify(state));
+  }, [state]);
 
-  //   })
   return (
     <Context.Provider value={dispatch}>
       <h1>Todos App</h1>
@@ -66,7 +85,13 @@ function TodoItem({ id, completed, text }) {
         checked={completed}
         onChange={() => dispatch({ type: "completed", payload: id })}
       />
-      <input type="text" defaultValue={text} />
+      <input
+        type="text"
+        defaultValue={text}
+        // onChange={(e) =>
+        //   dispatch({ type: "update", payload: { text: e.target.value, id } })
+        // }
+      />
       <button onClick={() => dispatch({ type: "delete", payload: id })}>
         Delete
       </button>
